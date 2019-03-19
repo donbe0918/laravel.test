@@ -1,13 +1,20 @@
 <?php
-namespace App\Http\Controllers;
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Socialite;
+use Illuminate\Support\Facades\DB;
+
 class UserController extends Controller
 {
-    public function index()
+    public function updateUser(Request $request)
     {
-        // ただの変数定義ですが、ここでModelにデータの処理を行わせたりします（後述）。
-        $name = 'yamada taro';
+        $token = $request->session()->get('github_token', null);
+        $user = Socialite::driver('github')->userFromToken($token);
 
-        // ここでuserビュー「user.blade.php」を呼び出し、データ「name」を渡している。
-        return view('user', ['name' => $name]);
-    }
+        DB::update('update public.user set name = ?, comment = ? where github_id = ?', [$request->input('name'), $request->input('comment'), $user->user['login']]);
+        return redirect('/github');
+    }    
 }
